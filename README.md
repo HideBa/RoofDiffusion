@@ -6,7 +6,7 @@ Welcome to the official implementation of paper "RoofDiffusion: Constructing Roo
 
 Update: We are excited to share that our work has been accepted for ECCV 2024! 🎉
 
-![5min Video](https://youtu.be/34nyxi3qHJQ?si=z3u9Vx3lkTIywduf)
+[5min Video](https://youtu.be/34nyxi3qHJQ?si=z3u9Vx3lkTIywduf)
 
 ![Demo](demo.png)
 
