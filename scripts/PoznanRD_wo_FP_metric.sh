@@ -4,6 +4,7 @@ python="python"
 
 base_src_dir="./dataset/PoznanRD/benchmark/wo_footprint/"
 base_out_dir="./experiments/PoznanRD_wo_FP"
+mkdir -p "$base_out_dir"
 base_out_dir="$(readlink -f "$base_out_dir")"
 
 si_array=("95 30" "95 60" "99 30" "99 60")
