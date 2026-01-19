@@ -201,6 +201,7 @@ def parse(args):
                 name,
                 os.path.join(opt["path"]["code"], name),
                 ignore=shutil.ignore_patterns("*.pyc", "__pycache__"),
+                dirs_exist_ok=True,
             )
         if ".py" in name or ".sh" in name:
             shutil.copy(name, opt["path"]["code"])
