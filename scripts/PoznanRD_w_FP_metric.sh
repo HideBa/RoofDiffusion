@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python="/home/kylelo/anaconda3/envs/RoofDiffusion/bin/python"
+python="python"
 
 base_src_dir="./dataset/PoznanRD/benchmark/w_footprint/"
 base_out_dir="./experiments/PoznanRD_FP/"
