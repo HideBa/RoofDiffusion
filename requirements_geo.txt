@@ -1,0 +1,22 @@
+# Geospatial I/O Extension Dependencies
+# Install with: pip install -r requirements_geo.txt
+
+# LAS/LAZ point cloud I/O
+laspy>=2.0.0          # LAS file reading/writing
+lazrs>=0.5.0          # LAZ compression support for laspy
+
+# GeoTIFF raster I/O
+rasterio>=1.3.0       # GeoTIFF reading/writing with GDAL bindings
+
+# Coordinate reference system handling
+pyproj>=3.0.0         # CRS transformations
+
+# Geometry operations (optional, for advanced footprint handling)
+shapely>=2.0.0        # Geometry operations
+
+# Scientific computing (may already be installed)
+scipy>=1.9.0          # Interpolation for rasterization
+numpy>=1.20.0         # Array operations
+
+# Image processing (may already be installed)
+Pillow>=9.0.0         # PNG reading/writing
