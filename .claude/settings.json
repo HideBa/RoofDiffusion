@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "feature-dev@claude-plugins-official": true,
+    "serena@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true
+  }
+}

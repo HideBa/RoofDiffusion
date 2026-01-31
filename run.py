@@ -10,7 +10,8 @@ import core.util as Util
 from data import define_dataloader
 from models import create_model, define_network, define_loss, define_metric
 
-torch.cuda.empty_cache()
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 def main_worker(gpu, ngpus_per_node, opt):
