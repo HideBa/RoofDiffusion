@@ -1,0 +1,209 @@
+{
+    "name": "roof_completion_geo",
+    "gpu_ids": [0],
+    "seed" : 100,
+    "finetune_norm": false,
+
+    "path": {
+        "base_dir": "experiments",
+        "code": "code",
+        "tb_logger": "tb_logger",
+        "results": "results",
+        "checkpoint": "checkpoint",
+        "resume_state": null
+    },
+
+    "datasets": {
+        "train": {
+            "which_dataset": {
+                "name": ["data.geo_dataset", "GeoRoofDataset"],
+                "args":{
+                    "data_root": "./dataset/PoznanRD/train_img.flist",
+                    "footprint_root": "./dataset/PoznanRD/train_footprint.flist",
+                    "data_len": -1,
+                    "use_footprint": true,
+
+                    "loader_config": {
+                        "las": {
+                            "resolution": 0.5,
+                            "classification_filter": [6],
+                            "rasterize_method": "max",
+                            "fill_method": "none"
+                        },
+                        "geotiff": {
+                            "nodata_value": null,
+                            "target_resolution": null
+                        }
+                    },
+
+                    "tile_size": [128, 128],
+                    "tile_overlap": 0,
+
+                    "mask_config": {
+                        "down_res_pct": [99, 98, 90, 80, 50, 25],
+                        "local_remove": [[0.0, 0.3, 5], [0.15, 0.3, 5]]
+                    },
+                    "noise_config": {
+                        "min_gauss_noise_sigma": 0,
+                        "max_gauss_noise_sigma": 0.05,
+                        "outlier_noise_percentage": 0.01
+                    },
+                    "data_aug": {
+                        "rotate": 90,
+                        "height_scale_probability": 0.5,
+                        "tree": {
+                            "flist_path": "./dataset/PoznanRD/tree/train_tree.flist",
+                            "probability": 0.3,
+                            "use_rotate": true,
+                            "min_tree_count": 1,
+                            "max_tree_count": 3,
+                            "min_xy_scale": 0.5,
+                            "max_xy_scale": 2.0,
+                            "max_xy_scale_diff": 0.1,
+                            "min_height_scale": 2.0,
+                            "max_height_scale": 4.0
+                        }
+                    },
+                    "footprint_as_mask" : true
+                }
+            },
+            "dataloader":{
+                "validation_split": 32,
+                "args":{
+                    "batch_size": 16,
+                    "num_workers": 8,
+                    "shuffle": true,
+                    "pin_memory": true,
+                    "drop_last": true
+                },
+                "val_args":{
+                    "batch_size": 16,
+                    "num_workers": 8,
+                    "shuffle": false,
+                    "pin_memory": true,
+                    "drop_last": false
+                }
+            }
+        },
+        "test": {
+            "which_dataset": {
+                "name": ["data.geo_dataset", "GeoRoofDataset"],
+                "args":{
+                    "data_root": "./dataset/PoznanRD/test_img.flist",
+                    "footprint_root": "./dataset/PoznanRD/test_footprint.flist",
+                    "footprint_as_mask" : true,
+                    "use_footprint": true,
+
+                    "loader_config": {
+                        "las": {
+                            "resolution": 0.5,
+                            "classification_filter": [6],
+                            "rasterize_method": "max"
+                        },
+                        "geotiff": {
+                            "nodata_value": null
+                        }
+                    }
+                }
+            },
+            "dataloader":{
+                "args":{
+                    "batch_size": 32,
+                    "num_workers": 8,
+                    "pin_memory": true
+                }
+            }
+        }
+    },
+
+    "model": {
+        "which_model": {
+            "name": ["models.geo_model", "GeoAwarePalette"],
+            "args": {
+                "sample_num": 8,
+                "task": "inpainting",
+
+                "export_formats": ["geotiff", "png"],
+                "export_config": {
+                    "geotiff": {
+                        "dtype": "float32",
+                        "compress": "lzw",
+                        "tiled": true
+                    },
+                    "laz": {
+                        "point_density": 2.0,
+                        "preserve_original_points": true,
+                        "classification": 6
+                    },
+                    "png": {
+                        "height_scale": 256.0
+                    }
+                },
+
+                "ema_scheduler": {
+                    "ema_start": 1,
+                    "ema_iter": 1,
+                    "ema_decay": 0.9999
+                },
+                "optimizers": [
+                    { "lr": 7e-5, "weight_decay": 0}
+                ],
+                "lr_schedulers": [
+                    { "start_factor": 0.2, "total_iters": 10000 }
+                ]
+            }
+        },
+        "which_networks": [
+            {
+                "name": ["models.network", "Network"],
+                "args": {
+                    "init_type": "kaiming",
+                    "module_name": "guided_diffusion",
+                    "unet": {
+                        "in_channel": 2,
+                        "out_channel": 1,
+                        "inner_channel": 64,
+                        "channel_mults": [1, 2, 4, 8],
+                        "attn_res": [4, 8],
+                        "num_head_channels": 32,
+                        "res_blocks": 2,
+                        "dropout": 0.2,
+                        "image_size": 128
+                    },
+                    "beta_schedule": {
+                        "train": {
+                            "schedule": "linear",
+                            "n_timestep": 2000,
+                            "linear_start": 1e-6,
+                            "linear_end": 0.01
+                        },
+                        "test": {
+                            "schedule": "linear",
+                            "n_timestep": 1000,
+                            "linear_start": 1e-4,
+                            "linear_end": 0.09
+                        }
+                    }
+                }
+            }
+        ],
+        "which_losses": ["masked_l1_loss"],
+        "which_metrics": ["mae"]
+    },
+
+    "train": {
+        "n_epoch": 1e8,
+        "n_iter": 1e8,
+        "val_epoch": 1,
+        "save_checkpoint_epoch": 5,
+        "log_iter": 10,
+        "tensorboard" : true
+    },
+
+    "debug": {
+        "val_epoch": 1,
+        "save_checkpoint_epoch": 1,
+        "log_iter": 2,
+        "debug_split": 50
+    }
+}

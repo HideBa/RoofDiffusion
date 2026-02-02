@@ -87,6 +87,67 @@ if __name__ == '__main__':
     parser.add_argument('--sample_num', type=int, default=0)
     parser.add_argument('--use_footprint', action='store_true', default=None)
 
+    # Geospatial I/O arguments
+    geo_group = parser.add_argument_group('Geospatial I/O')
+    geo_group.add_argument(
+        '--input_format',
+        type=str,
+        choices=['auto', 'las', 'laz', 'geotiff', 'png'],
+        default='auto',
+        help='Input data format (auto-detected if not specified)'
+    )
+    geo_group.add_argument(
+        '--input_resolution',
+        type=float,
+        default=0.5,
+        help='Resolution for rasterizing point clouds (meters)'
+    )
+    geo_group.add_argument(
+        '--output_formats',
+        type=str,
+        nargs='+',
+        default=None,
+        choices=['geotiff', 'las', 'laz', 'png'],
+        help='Output format(s) for results'
+    )
+    geo_group.add_argument(
+        '--output_resolution',
+        type=float,
+        default=None,
+        help='Output resolution (default: same as input)'
+    )
+    geo_group.add_argument(
+        '--densify_points',
+        type=float,
+        default=1.0,
+        help='Point density for LAS/LAZ output (points per m^2)'
+    )
+    geo_group.add_argument(
+        '--preserve_input_points',
+        action='store_true',
+        help='Include original input points in densified output'
+    )
+    geo_group.add_argument(
+        '--tile_size',
+        type=int,
+        nargs=2,
+        default=[128, 128],
+        help='Tile size for large dataset processing'
+    )
+    geo_group.add_argument(
+        '--tile_overlap',
+        type=int,
+        default=16,
+        help='Overlap between tiles for seamless stitching'
+    )
+    geo_group.add_argument(
+        '--classification_filter',
+        type=int,
+        nargs='+',
+        default=None,
+        help='LAS classification codes to include (e.g., 6 for buildings)'
+    )
+
     ''' parser configs '''
     args = parser.parse_args()
     opt = Praser.parse(args)
