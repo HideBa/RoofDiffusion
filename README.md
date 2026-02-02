@@ -68,6 +68,75 @@ python run.py -p test -c config/roof_completion_no_footprint.json \
 
 > Tested on NVIDIA RTX3090. Please adjust `batch_size` in JSON file if out of GPU memory.
 
+## Geospatial I/O Extension
+
+RoofDiffusion now supports direct processing of geospatial data formats (LAS/LAZ point clouds and GeoTIFF rasters) while preserving coordinate reference systems and spatial metadata.
+
+### Installation
+```console
+pip install -r requirements_geo.txt
+```
+
+This installs:
+- `laspy` + `lazrs` for LAS/LAZ point cloud I/O
+- `rasterio` for GeoTIFF raster I/O
+- `pyproj` for coordinate reference system handling
+
+### Processing LiDAR Point Clouds
+
+**Single LAS/LAZ file:**
+```console
+python scripts/process_lidar.py input.laz -o output.tif --checkpoint ./pretrained/w_footprint/260
+```
+
+**With densified point cloud output:**
+```console
+python scripts/process_lidar.py input.laz -o output.laz --densify --density 4.0 --preserve-original
+```
+
+**Batch process a directory:**
+```console
+python scripts/process_lidar.py ./input_dir -o ./output_dir --batch
+```
+
+### Processing GeoTIFF DSM/DTM
+
+```console
+python run.py -p test -c config/roof_completion_geo.json \
+    --resume ./pretrained/w_footprint/260 \
+    --data_root ./input/sparse_dsm.tif \
+    --input_format geotiff \
+    --output_formats geotiff \
+    --tile_size 128 128 \
+    --tile_overlap 16
+```
+
+### Key Options
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--input_resolution` | Resolution for rasterizing point clouds (m) | 0.5 |
+| `--classification_filter` | LAS classification codes to include | 6 (buildings) |
+| `--output_formats` | Output format(s) | geotiff |
+| `--densify_points` | Point density for LAZ output (pts/m²) | 1.0 |
+| `--tile_size` | Tile size for large files | 128 |
+| `--tile_overlap` | Overlap between tiles | 16 |
+
+### Python API
+```python
+from data.geo.loaders import LASLoader
+from data.geo.exporters import GeoTIFFExporter, LASExporter
+
+# Load sparse point cloud
+loader = LASLoader(resolution=0.5, classification_filter=[6])
+tile = loader.load("sparse_roof.laz")
+
+# ... run model inference ...
+
+# Export to multiple formats
+GeoTIFFExporter().export(result, tile.metadata, "output.tif")
+LASExporter(point_density=4.0).export(result, tile.metadata, "output.laz")
+```
+
 ## Customize New Benchmark
 Make costomized benchmark by adjusting parameters in `make_test_image.py` and run
 ```console
